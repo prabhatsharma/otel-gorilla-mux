@@ -1,0 +1,91 @@
+# create namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: otel-gorilla-mux
+  labels:
+    name: otel-gorilla-mux
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-gorilla-mux
+  namespace: otel-gorilla-mux
+spec:
+  type: ClusterIP
+  selector:
+    app: otel-gorilla-mux
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+
+# create deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-gorilla-mux
+  namespace: otel-gorilla-mux
+  labels:
+    name: aws-otel-eks-sidecar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: otel-gorilla-mux
+      app: otel-gorilla-mux
+  template:
+    metadata:
+      labels:
+        name: otel-gorilla-mux
+        app: otel-gorilla-mux
+    spec:
+      securityContext:
+        fsGroup: 2000
+        runAsUser: 10000
+        runAsGroup: 3000
+        runAsNonRoot: true
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: otel-gorilla-mux
+          image: public.ecr.aws/p6d6n2q4/otel-gorilla-mux:v9
+          env:
+            - name: OTEL_OTLP_GRPC_ENDPOINT
+              value: "localhost:4317"
+            - name: OTEL_OTLP_HTTP_ENDPOINT
+              value: "localhost:55681"
+            - name: PORT
+              value: "8080"
+          # command: ["/bin/bash", "-c", "while true; do sleep 1; done"] # for debugging
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 64m
+              memory: 100Mi
+            requests:
+              cpu: 32m
+              memory: 50Mi
+          ports:
+            - containerPort: 8080
+              name: http
+        - name: aws-otel-collector
+          image: public.ecr.aws/aws-observability/aws-otel-collector:latest
+          env:
+            - name: AWS_REGION
+              value: us-west-2
+          # command:
+          #   - /awscollector
+            # - --set=service.telemetry.logs.level=debug
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 256m
+              memory: 512Mi
+            requests:
+              cpu: 32m
+              memory: 24Mi
+
+
