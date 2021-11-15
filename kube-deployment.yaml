@@ -51,13 +51,11 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
         - name: otel-gorilla-mux
-          image: public.ecr.aws/p6d6n2q4/otel-gorilla-mux:v9
+          image: public.ecr.aws/p6d6n2q4/otel-gorilla-mux:v1
           env:
             - name: OTEL_OTLP_GRPC_ENDPOINT
-              value: "localhost:4317"
-            - name: OTEL_OTLP_HTTP_ENDPOINT
-              value: "localhost:55681"
-            - name: PORT
+              value: "0.0.0.0:4317"
+            - name: LISTEN_ADDRESS
               value: "8080"
           # command: ["/bin/bash", "-c", "while true; do sleep 1; done"] # for debugging
           imagePullPolicy: Always

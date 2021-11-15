@@ -118,7 +118,7 @@ func main() {
 func initProvider() {
 	ctx := context.Background()
 
-	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	endpoint := os.Getenv("OTEL_OTLP_GRPC_ENDPOINT")
 	if endpoint == "" {
 		endpoint = "0.0.0.0:4317" // setting default endpoint for exporter
 	}
